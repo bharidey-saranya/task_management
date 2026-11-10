@@ -12,7 +12,16 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if ($this->app->runningUnitTests()) {
+            return;
+        }
+
         try {
+            if (!Schema::hasTable('projects')) {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+            }
+
             if (Schema::hasTable('projects') && !Schema::hasColumn('projects', 'is_active')) {
                 Schema::table('projects', function (Blueprint $table) {
                     $table->boolean('is_active')->default(true)->after('name');
